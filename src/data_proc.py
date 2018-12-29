@@ -113,7 +113,8 @@ def retype_columns(prop):
         df[col] = df[col].astype(int).astype('category')
 
     list_float2categorical = ['cooling_id', 'architecture_style_id', 'framing_id', 'quality_id',
-                             'heating_id', 'county_id', 'construction_id', 'fips', 'landuse_type_id']
+                             'heating_id', 'county_id', 'construction_id', 'fips', 'landuse_type_id',
+                             'county_landuse_code_id', 'zoning_description_id']
 
     # Convert categorical variables to 'category' type, and float64 variables to float32
     for col in prop.columns:
@@ -142,12 +143,10 @@ def remove_outliers(train, threshold):
 """
 def drop_features(features):
     unused_feature_list = ['parcelid', 'logerror']  # not features
-    unused_feature_list += ['county_landuse_code', 'zoning_description']  # cannot be used directly
 
-    # too many missing (LightGBM is robust against bad/unrelated features, so probably no need to drop)
-    missing_list = ['framing_id', 'construction_id', 'deck_id', 'pool_unk_1', 'architecture_style_id',
-                'story_id', 'perimeter_area', 'pool_total_size', 'basement_sqft', 'storage_sqft', 'fireplace_flag']
-    # unused_feature_list += missing_list
+    # too many missing (LightGBM is robust against bad/unrelated features, so this step might not be needed)
+    missing_list = ['framing_id', 'architecture_style_id', 'story_id', 'perimeter_area', 'basement_sqft', 'storage_sqft']
+    unused_feature_list += missing_list
 
     return features.drop(unused_feature_list, axis=1, errors='ignore')
 
