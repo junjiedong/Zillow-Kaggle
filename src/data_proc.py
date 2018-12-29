@@ -126,6 +126,18 @@ def retype_columns(prop):
 
 
 """
+    Remove training examples with abnormal logerror values
+"""
+def remove_outliers(train, threshold):
+    print("{} training examples in total".format(len(train)))
+    print("{} with abs(logerror) > {}".format((abs(train.logerror) > threshold).sum(), threshold))
+
+    train = train[abs(train.logerror) <= threshold]
+    print("New training set size (outliers removed): {}".format(len(train)))
+    return train
+
+
+"""
     Drop features that are not useful or too messy
 """
 def drop_features(features):
