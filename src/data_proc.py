@@ -2,6 +2,37 @@ import numpy as np
 import pandas as pd
 import gc
 
+"""
+    Load training data from csv file
+"""
+def load_training_data(file_name):
+    return pd.read_csv(file_name)
+
+
+"""
+    Load house properties data
+"""
+def load_properties_data(file_name):
+
+    # Helper function for parsing the flag attributes
+    def convert_true_to_float(df, col):
+        df.loc[df[col] == 'true', col] = '1'
+        df.loc[df[col] == 'Y', col] = '1'
+        df[col] = df[col].astype(float)
+
+    prop = pd.read_csv(file_name, dtype={
+        'propertycountylandusecode': str,
+        'hashottuborspa': str,
+        'propertyzoningdesc': str,
+        'fireplaceflag': str,
+        'taxdelinquencyflag': str
+    })
+
+    for col in ['hashottuborspa', 'fireplaceflag', 'taxdelinquencyflag']:
+        convert_true_to_float(prop, col)
+
+    return prop
+
 
 """
     Assign better names to all feature columns of 'properties' table
@@ -92,6 +123,72 @@ def retype_columns(prop):
             prop[col] = prop[col].astype(np.float32)
 
     gc.collect()
+
+
+"""
+    Drop features that are not useful or too messy
+"""
+def drop_features(features):
+    unused_feature_list = ['parcelid', 'logerror']  # not features
+    unused_feature_list += ['county_landuse_code', 'zoning_description']  # cannot be used directly
+
+    # too many missing (LightGBM is robust against bad/unrelated features, so probably no need to drop)
+    missing_list = ['framing_id', 'construction_id', 'deck_id', 'pool_unk_1', 'architecture_style_id',
+                'story_id', 'perimeter_area', 'pool_total_size', 'basement_sqft', 'storage_sqft', 'fireplace_flag']
+    # unused_feature_list += missing_list
+
+    return features.drop(unused_feature_list, axis=1, errors='ignore')
+
+
+"""
+    Compute and return datetime aggregate feature tables from a training set
+    The returned tables can be joined for both training and inference
+"""
+def compute_datetime_aggregate_features(train):
+    # Add temporary year/month/quarter columns
+    dt = pd.to_datetime(train.transactiondate).dt
+    train['year'] = dt.year
+    train['month'] = dt.month
+    train['quarter'] = dt.quarter
+
+    # Median logerror within the category
+    logerror_year = train.groupby('year').logerror.median().to_frame() \
+                                .rename(index=str, columns={"logerror": "logerror_year"})
+    logerror_month = train.groupby('month').logerror.median().to_frame() \
+                                .rename(index=str, columns={"logerror": "logerror_month"})
+    logerror_quarter = train.groupby('quarter').logerror.median().to_frame() \
+                                .rename(index=str, columns={"logerror": "logerror_quarter"})
+
+    logerror_year.index = logerror_year.index.map(int)
+    logerror_month.index = logerror_month.index.map(int)
+    logerror_quarter.index = logerror_quarter.index.map(int)
+
+    # Drop the temporary columns
+    train.drop(['year', 'month', 'quarter'], axis=1, errors='ignore', inplace=True)
+
+    return logerror_year, logerror_month, logerror_quarter
+
+
+"""
+    Add aggregrate datetime features to a feature table
+    The input table needs to have a 'transactiondate' columns
+    The 'transactiondate' column is deleted from the table in the end
+"""
+def add_datetime_aggregate_features(df, logerror_year, logerror_month, logerror_quarter):
+    # Add temporary year/month/quarter columns
+    dt = pd.to_datetime(df.transactiondate).dt
+    df['year'] = dt.year
+    df['month'] = dt.month
+    df['quarter'] = dt.quarter
+
+    # Join the aggregate features
+    df = df.merge(how='left', right=logerror_year, on='year')
+    df = df.merge(how='left', right=logerror_month, on='month')
+    df = df.merge(how='left', right=logerror_quarter, on='quarter')
+
+    # Drop the temporary columns
+    df = df.drop(['year', 'month', 'quarter', 'transactiondate'], axis=1, errors='ignore')
+    return df
 
 
 """
