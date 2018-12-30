@@ -112,7 +112,7 @@ def retype_columns(prop):
         df.loc[df[col].isnull(), col] = -1
         df[col] = df[col].astype(int).astype('category')
 
-    list_float2categorical = ['cooling_id', 'architecture_style_id', 'framing_id', 'quality_id',
+    list_float2categorical = ['cooling_id', 'architecture_style_id', 'framing_id',
                              'heating_id', 'county_id', 'construction_id', 'fips', 'landuse_type_id',
                              'county_landuse_code_id', 'zoning_description_id']
 
@@ -147,6 +147,12 @@ def drop_features(features):
     # too many missing (LightGBM is robust against bad/unrelated features, so this step might not be needed)
     missing_list = ['framing_id', 'architecture_style_id', 'story_id', 'perimeter_area', 'basement_sqft', 'storage_sqft']
     unused_feature_list += missing_list
+
+    bad_feature_list = ['fireplace_flag', 'deck_id', 'pool_unk_1', 'construction_id']
+    bad_feature_list += ['county_id', 'fips']
+    unused_feature_list += bad_feature_list  # chosen based on LightGBM feature importance
+
+    unused_feature_list += ['county_landuse_code_id', 'zoning_description_id']  # really hurts performance
 
     return features.drop(unused_feature_list, axis=1, errors='ignore')
 
@@ -215,3 +221,7 @@ def print_complete_percentage(df):
     complete_percent.sort(key=lambda x: x[1], reverse=True)
     for col, percent in complete_percent:
         print("{}: {}".format(col, percent))
+
+
+def foo():
+    return 3
