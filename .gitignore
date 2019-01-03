@@ -1,5 +1,6 @@
 **/*.pyc
 **/__pycache__
+**/*.h5
 **/.DS_Store
 **/.ipynb_checkpoints
 data/*
