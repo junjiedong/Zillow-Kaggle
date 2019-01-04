@@ -1,7 +1,9 @@
 **/*.pyc
 **/__pycache__
 **/*.h5
+catboost_info
 **/.DS_Store
+**/*.tmp
 **/.ipynb_checkpoints
 data/*
 

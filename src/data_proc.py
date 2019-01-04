@@ -127,37 +127,6 @@ def retype_columns(prop):
 
 
 """
-    Remove training examples with abnormal logerror values
-"""
-def remove_outliers(train, threshold):
-    print("{} training examples in total".format(len(train)))
-    print("{} with abs(logerror) > {}".format((abs(train.logerror) > threshold).sum(), threshold))
-
-    train = train[abs(train.logerror) <= threshold]
-    print("New training set size (outliers removed): {}".format(len(train)))
-    return train
-
-
-"""
-    Drop features that are not useful or too messy
-"""
-def drop_features(features):
-    unused_feature_list = ['parcelid', 'logerror']  # not features
-
-    # too many missing (LightGBM is robust against bad/unrelated features, so this step might not be needed)
-    missing_list = ['framing_id', 'architecture_style_id', 'story_id', 'perimeter_area', 'basement_sqft', 'storage_sqft']
-    unused_feature_list += missing_list
-
-    bad_feature_list = ['fireplace_flag', 'deck_id', 'pool_unk_1', 'construction_id']
-    bad_feature_list += ['county_id', 'fips']
-    unused_feature_list += bad_feature_list  # chosen based on LightGBM feature importance
-
-    unused_feature_list += ['county_landuse_code_id', 'zoning_description_id']  # really hurts performance
-
-    return features.drop(unused_feature_list, axis=1, errors='ignore')
-
-
-"""
     Compute and return datetime aggregate feature tables from a training set
     The returned tables can be joined for both training and inference
 """
@@ -206,6 +175,17 @@ def add_datetime_aggregate_features(df, logerror_year, logerror_month, logerror_
     # Drop the temporary columns
     df = df.drop(['year', 'month', 'quarter', 'transactiondate'], axis=1, errors='ignore')
     return df
+
+
+"""
+    Add simple 'year', 'month', and 'quarter' categorical features to a DataFrame
+"""
+def add_simple_datetime_features(df):
+    dt = pd.to_datetime(df.transactiondate).dt
+    df['year'] = (dt.year - 2016).astype(int)
+    df['month'] = (dt.month).astype(int)
+    df['quarter'] = (dt.quarter).astype(int)
+    df.drop(['transactiondate'], axis=1, inplace=True)
 
 
 """
