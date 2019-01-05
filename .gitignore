@@ -9,5 +9,4 @@ submission
 **/.ipynb_checkpoints
 data/*
 
-!data/.gitkeeip
 !data/zillow_data_dictionary.xlsx
