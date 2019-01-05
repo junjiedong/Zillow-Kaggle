@@ -2,9 +2,12 @@
 **/__pycache__
 **/*.h5
 catboost_info
+checkpoints
+submission
 **/.DS_Store
 **/*.tmp
 **/.ipynb_checkpoints
 data/*
 
-!data/.gitkeep
+!data/.gitkeeip
+!data/zillow_data_dictionary.xlsx
