@@ -201,7 +201,3 @@ def print_complete_percentage(df):
     complete_percent.sort(key=lambda x: x[1], reverse=True)
     for col, percent in complete_percent:
         print("{}: {}".format(col, percent))
-
-
-def foo():
-    return 3
