@@ -3,6 +3,8 @@ This repo tackles the first round of [Zillow’s Home Value Prediction Competiti
 
 The score of the stacked model in this repo would have ranked in the top-100 and qualified for the private second round, which involves building a home valuation algorithm from ground up.
 
+**Author**: Junjie Dong (junjied@stanford.edu)
+
 # Files
 - `explanatory.ipynb` performs basic explanatory data analysis. The analysis is by no means comprehensive, since most ad-hoc data analysis were performed while extracting features and building models.
 - `feature_extraction.ipynb` cleans up the raw data, unifies data types and the representations of missing values, and extracts various kinds of features (eg. interaction features, region-based aggregate features). The features are saved to hdf5 files that can be easily loaded by other notebooks for modeling.
